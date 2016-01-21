@@ -8,12 +8,12 @@
 from scrapy.conf import settings
 from scrapy.exceptions import DropItem
 from elasticsearch import Elasticsearch
+from elasticsearch import helpers
 from mico.items import *
 import logging
 from datetime import datetime
 import time
 from dateutil.tz import tzoffset
-from pytz import timezone, utc
 
 class XueQiuCommentPipeline(object):
 
@@ -95,6 +95,9 @@ class ReferencePipeline(object):
 class TimeSeriesPipeline(object):
 
     last_time = 0
+    bulk_throttle = 1000
+
+    actions = []
 
     def __init__(self):
         self.es_client = Elasticsearch(settings['ES_HOST'])
@@ -117,10 +120,16 @@ class TimeSeriesPipeline(object):
             self.last_time = doc['hits']['hits'][0]['_source']['time']
         pass
 
+    def _bulk(self):
+        if len(self.actions) > 0:
+            helpers.bulk(self.es_client, actions=self.actions)
+            self.actions = []
+
     def process_item(self, item, spider):
         if isinstance(item, TimeSeriesItem):
             if item['time'] <= self.last_time:
                 spider.close_down = True
+                self._bulk()
                 return item
 
             doc_body = {
@@ -133,6 +142,18 @@ class TimeSeriesPipeline(object):
                 'time_str': datetime.strftime(datetime.fromtimestamp(item['time']), '%Y-%m-%d')
             }
             uuid = "%s_%d" % (item['code'], item['time'])
-            self.es_client.create(index=settings['ES_TIMESERIES_INDEX'], doc_type='daily', id=uuid, body=doc_body, ignore=(409))
+            action_body = {
+                '_index': settings['ES_TIMESERIES_INDEX'],
+                '_type': 'daily',
+                '_id': uuid,
+                '_source': doc_body
+            }
+            self.actions.append(action_body)
+
+            #throttle
+            if len(self.actions) > self.bulk_throttle:
+                self._bulk()
+        elif isinstance(item, TimeSeriesAdminEndItem):
+            self._bulk()
 
         return item

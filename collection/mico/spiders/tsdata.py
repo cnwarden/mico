@@ -48,3 +48,4 @@ class TimeSeriesSpider(Spider):
                     item['lowprc'] = float(ds[5])
                     item['openprc'] = float(ds[6])
                     yield item
+            yield TimeSeriesAdminEndItem()

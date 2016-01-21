@@ -112,6 +112,7 @@ ES_TIMESERIES_INDEX='timeseries'
 #es_client = Elasticsearch(ES_HOST)
 #es_client#.indices.delete(index=ES_INDEX,ignore=(400,404))
 import logging
+es_logger = logging.getLogger('elasticsearch')
+es_logger.disabled = True
 tracer = logging.getLogger('elasticsearch.trace')
-tracer.setLevel(logging.INFO)
-tracer.addHandler(logging.NullHandler())
+tracer.disabled = True
