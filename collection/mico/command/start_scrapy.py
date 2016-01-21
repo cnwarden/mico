@@ -7,6 +7,7 @@ from datetime import datetime
 from twisted.internet import reactor
 import sys
 
+
 def run_spider(name):
     settings = get_project_settings()
 
@@ -18,6 +19,7 @@ def run_spider(name):
     process = CrawlerProcess(settings)
     process.crawl(name)
     process.start()
+
 
 def run_loop():
     print('heartbeat!--->%s' % (datetime.now().strftime("%d/%m/%y %H:%M:%S")))

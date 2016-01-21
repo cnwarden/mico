@@ -2,23 +2,28 @@
 
 from elasticsearch import Elasticsearch
 import codecs
-import re
 
-fp = codecs.open('out.txt', mode='w', encoding='utf-8')
+fp = codecs.open('stock.dict', mode='w', encoding='utf-8')
 
-client = Elasticsearch([{'host':'10.35.22.80','port':9200}])
-query_body = {'size':10, 'query': {'match_all': {}}, 'sort': [{'comment.id': {'order': 'desc'}}]}
-doc = client.search(index='xueqiu', doc_type="comment", body=query_body, ignore=400)
+client = Elasticsearch([{'host': '127.0.0.1', 'port': 9200}])
+query_body = {
+    'size': 10000,
+    'query':
+        {
+            'match_all': {}
+        },
+    'sort':
+        [
+            {
+                'instrument.code':
+                    {'order': 'asc'}
+             }
+        ]
+    }
+doc = client.search(index='reference', doc_type="instrument", body=query_body, ignore=400)
+
 for item in doc['hits']['hits']:
-    text = item['_source']['comment']['text']
-    text = re.sub('<.*?>', '', text)
-    text = re.sub('&nbsp;', '', text)
-
-    m = re.search('\$.*?\$', text)
-    text = re.sub('\$.*\$', '', text)
-    text = re.sub('^\s.*?', '', text)
-    print text
-
+    text = item['_source']['instrument']['name']
     fp.write(text)
     fp.write('\n')
 

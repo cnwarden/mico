@@ -24,7 +24,6 @@ class XueQiuCommentPipeline(object):
         self.last_doc_id = 0
 
         dt = datetime.now(tz=tzoffset(name='china', offset=28800))
-        #dt = timezone('Asia/Shanghai').localize(datetime.now())
         zero_dt = datetime(dt.year, dt.month, dt.day)
         self.limit_today = time.mktime(zero_dt.timetuple())
         logging.info("today 00:00:00 = %d" % (time.mktime(zero_dt.timetuple())))
@@ -87,7 +86,13 @@ class ReferencePipeline(object):
 
     def process_item(self, item, spider):
         if isinstance(item, ReferenceItem):
-            doc_body = {'instrument': {'code': item['code'], 'name': item['name']}}
+            doc_body = {
+                'instrument':
+                    {
+                        'code': item['code'],
+                        'name': item['name']
+                    }
+            }
             self.es_client.create(index=settings['ES_REF_INDEX'], doc_type="instrument", id=item['code'], body=doc_body, ignore=(409))
         return item
 

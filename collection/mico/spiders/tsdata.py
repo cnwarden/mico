@@ -33,10 +33,8 @@ class TimeSeriesSpider(Spider):
     def parse(self, response):
         if response.status == 200:
             for line in response.body.split('\n'):
-
                 if self.close_down:
                     raise CloseSpider(reason='reach the limit')
-
                 if re.search('^\d{4}-\d{2}-\d{2}', line):
                     ds = line.split(',')
                     item = TimeSeriesItem()
@@ -44,7 +42,7 @@ class TimeSeriesSpider(Spider):
                     item['time'] = time.mktime(dt.timetuple())
                     item['code'] = ds[1][1:]
                     item['closeprc'] = float(ds[3])
-                    item['highprc'] =  float(ds[4])
+                    item['highprc'] = float(ds[4])
                     item['lowprc'] = float(ds[5])
                     item['openprc'] = float(ds[6])
                     yield item
