@@ -32,5 +32,9 @@ class TimeSeriesItem(scrapy.Item):
     closeprc = scrapy.Field()
 
 
+class TimeSeriesAdminStartItem(scrapy.Item):
+    code = scrapy.Field()
+
+
 class TimeSeriesAdminEndItem(scrapy.Item):
     end = scrapy.Field()

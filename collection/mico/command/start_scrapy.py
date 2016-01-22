@@ -8,8 +8,11 @@ from twisted.internet import reactor
 import sys
 
 
-def run_spider(name):
+def run_spider(args):
     settings = get_project_settings()
+
+    name = args[0]
+    paras = dict(x.split('=', 1) for x in args[1:])
 
     if name == 'reference':
         settings.set('ITEM_PIPELINES', settings['REFERENCE_ITEM_PIPELINES'])
@@ -17,7 +20,7 @@ def run_spider(name):
         settings.set('ITEM_PIPELINES', settings['TIMESERIES_ITEM_PIPELINES'])
 
     process = CrawlerProcess(settings)
-    process.crawl(name)
+    process.crawl(name, **paras)
     process.start()
 
 
@@ -27,5 +30,4 @@ def run_loop():
 if __name__ == "__main__":
     spider = None
     if len(sys.argv) > 0:
-        spider = sys.argv[1]
-    run_spider(spider)
+        run_spider(sys.argv[1:])

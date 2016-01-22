@@ -99,20 +99,35 @@ class ReferencePipeline(object):
 
 class TimeSeriesPipeline(object):
 
-    last_time = 0
     bulk_throttle = 1000
+
+    status = {}
 
     actions = []
 
     def __init__(self):
         self.es_client = Elasticsearch(settings['ES_HOST'])
         self.es_client.indices.create(settings['ES_TIMESERIES_INDEX'], ignore=400)
+
+    def __init_status(self, code, last_time):
+        self.status[code] = { 'time': last_time, 'complete': False}
+
+    def __set_complete(self, code, complete=True):
+        self.status[code]['complete'] = complete
+
+    def __check_all_complete(self):
+        for key in self.status.keys():
+            if self.status[key]['complete'] == False:
+                return False
+        return True
+
+    def __query_last_time(self, code):
         search_body = {
             'size': 1,
             'query':
                 {
                     'match':
-                        { 'code': '000001'}
+                        { 'code': code}
                 },
             'sort':
                 {
@@ -122,8 +137,9 @@ class TimeSeriesPipeline(object):
         }
         doc = self.es_client.search(index=settings['ES_TIMESERIES_INDEX'], doc_type='daily', body=search_body, ignore=(400))
         if not doc.has_key('status') and len(doc['hits']['hits'])==1 and doc['hits']['hits'][0]['_source']['time']:
-            self.last_time = doc['hits']['hits'][0]['_source']['time']
-        pass
+            return doc['hits']['hits'][0]['_source']['time']
+        else:
+            return 0
 
     def _bulk(self):
         if len(self.actions) > 0:
@@ -131,11 +147,14 @@ class TimeSeriesPipeline(object):
             self.actions = []
 
     def process_item(self, item, spider):
-        if isinstance(item, TimeSeriesItem):
-            if item['time'] <= self.last_time:
-                spider.close_down = True
+        if isinstance(item, TimeSeriesAdminStartItem):
+            last_time = self.__query_last_time(item['code'])
+            self.__init_status(item['code'],last_time)
+        elif isinstance(item, TimeSeriesItem):
+            if item['time'] <= self.status[item['code']]['time']:
                 self._bulk()
-                return item
+                self.__set_complete(item['code'])
+                return #no need process more, better raise DropItem exception
 
             doc_body = {
                 'code': item['code'],
