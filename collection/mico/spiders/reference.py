@@ -10,7 +10,6 @@ class ReferenceSpider(Spider):
     """
         163 reference list:
         http://quotes.money.163.com/hs/service/marketradar_ajax.php?page=50&query=STYPE:EQA;EXCHANGE:CNSESH&count=100&type=query&order=desc
-
         http://quotes.money.163.com/hs/service/diyrank.php?page=0&query=STYPE:EQA;EXCHANGE:CNSESH&sort=SYMBOL&order=asc&count=100&type=query
     """
     name = 'reference'

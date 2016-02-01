@@ -104,9 +104,9 @@ TIMESERIES_ITEM_PIPELINES = {
 
 # ElasticSearch
 ES_HOST=[{'host':'127.0.0.1','port':9200}]
-ES_INDEX='xueqiu'
-ES_REF_INDEX='reference'
-ES_TIMESERIES_INDEX='timeseries'
+ES_INDEX='xueqiu_t'
+ES_REF_INDEX='reference_t'
+ES_TIMESERIES_INDEX='timeseries_t'
 
 #from elasticsearch import Elasticsearch
 #es_client = Elasticsearch(ES_HOST)

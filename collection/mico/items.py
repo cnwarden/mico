@@ -6,6 +6,7 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
+from mico.util.toolbox import TimeHelper, TimeService
 
 class XueQiuAuthorItem(scrapy.Item):
     user_id = scrapy.Field()
@@ -13,9 +14,28 @@ class XueQiuAuthorItem(scrapy.Item):
 
 
 class XueQiuCommentItem(scrapy.Item):
+    """
+    created_at in Epoch Time(UTC)
+    """
     id = scrapy.Field()
     text = scrapy.Field()
-    created_at = scrapy.Field()
+    created_at = scrapy.Field() # in Epoch Time(UTC)
+    symbol = scrapy.Field()
+    ticker = scrapy.Field()
+
+    def toJson(self):
+        ts = TimeService(self.get('created_at')/1000)
+        return {
+            'content':
+                {
+                    'id': self.get('id'),
+                    'text': self.get('text'),
+                    'created_at': self.get('created_at'),
+                    'created_at_str': ts.get_local_time().strftime("%Y-%m-%d %H:%M:%S"),
+                    'symbol': self.get('symbol'),
+                    'ticker': self.get('ticker')
+                }
+        }
 
 
 class ReferenceItem(scrapy.Item):
