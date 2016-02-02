@@ -8,10 +8,6 @@
 import scrapy
 from mico.util.toolbox import TimeHelper, TimeService
 
-class XueQiuAuthorItem(scrapy.Item):
-    user_id = scrapy.Field()
-    screen_name = scrapy.Field()
-
 
 class XueQiuCommentItem(scrapy.Item):
     """
@@ -37,10 +33,34 @@ class XueQiuCommentItem(scrapy.Item):
                 }
         }
 
+class XueQiuAuthorItem(scrapy.Item):
+    user_id = scrapy.Field()
+    screen_name = scrapy.Field()
+
+    def toJson(self):
+        """
+        this is a update query, set root to 'doc'
+        :return:
+        """
+        return {
+            'doc':{
+                'author':{
+                    'uid': self.get('user_id'),
+                    'name': self.get('screen_name')
+                }
+            }
+        }
+
 
 class ReferenceItem(scrapy.Item):
     code = scrapy.Field()
     name = scrapy.Field()
+
+    def toJson(self):
+        return {
+                'code': self.get('code')[1:]+'.SH',
+                'name': self.get('name')
+        }
 
 
 class TimeSeriesItem(scrapy.Item):

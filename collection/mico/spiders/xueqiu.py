@@ -56,10 +56,9 @@ class XueqiuSpider(scrapy.Spider):
         self.current_ticker = None
         self.page = 0
         self.max_count = 100
-        self.close_down = False
         self.status_tracker = Status(self.symbols)
 
-    def __close_down(self):
+    def close_down(self):
         for key in self.status_tracker.status.keys():
             if not self.status_tracker.is_done(key):
                 return False
@@ -100,10 +99,10 @@ class XueqiuSpider(scrapy.Spider):
                     item['ticker'] = response.meta['ticker']
                     yield item
 
-                    #author_item = XueQiuAuthorItem()
-                    #author_item['user_id'] = l['user']['id']
-                    #author_item['screen_name'] = l['user']['screen_name']
-                    #yield author_item
+                    author_item = XueQiuAuthorItem()
+                    author_item['user_id'] = l['user']['id']
+                    author_item['screen_name'] = l['user']['screen_name']
+                    yield author_item
 
             next_url = self.__generate_next_url()
             if next_url:
@@ -111,5 +110,5 @@ class XueqiuSpider(scrapy.Spider):
                             meta={'spider': 'xueqiu', 'ticker': self.current_ticker, 'symbol': self.current_symbol})
                 yield r
 
-        if self.__close_down():
+        if self.close_down():
             raise CloseSpider(reason="endpoint reached")

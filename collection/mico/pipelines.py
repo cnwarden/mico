@@ -12,15 +12,12 @@ from elasticsearch import helpers
 from mico.items import *
 from mico.util.esagent import *
 import logging
-from datetime import datetime
-import time
-from dateutil.tz import tzoffset
-from mico.util.toolbox import TimeService, TimeHelper
+from mico.util.toolbox import *
 
 class XueQiuCommentPipeline(object):
 
     def __init__(self):
-        self.esclient = ESAgent(hosts=settings['ES_TEST_HOST'])
+        self.esclient = ESAgent(settings = convertScrapySettingToDict(settings))
         self.esclient.initalize()
 
         self.limit_today = int(TimeHelper.get_today_epoch_time() * 1000)
@@ -48,8 +45,9 @@ class XueQiuCommentPipeline(object):
 
             self.esclient.create_comment(item.toJson())
         else:
-            if spider.status_tracker.set_status(item['symbol'], True):
-                raise DropItem("symbol done, block other following author items")
+            if spider.close_down():
+                return # none return to avoid log
+                # raise DropItem("symbol done, block other following author items")
         # continue process
         return item
 
@@ -57,15 +55,13 @@ class XueQiuCommentPipeline(object):
 class XueQiuAuthorPipeline(object):
 
     def __init__(self):
-        self.es_client = Elasticsearch(settings['ES_HOST'])
-        self.es_client.indices.create(settings['ES_INDEX'], ignore=400)
-
+        self.esclient = ESAgent(settings = convertScrapySettingToDict(settings))
+        self.esclient.initalize()
         self.last_doc_id = 0
 
     def process_item(self, item, spider):
         if isinstance(item, XueQiuAuthorItem):
-            author_body = {'doc': {'author': {'uid': item['user_id'], 'name': item['screen_name']}}}
-            self.es_client.update(index=settings['ES_INDEX'], doc_type="comment", id=self.last_doc_id, body=author_body)
+            self.esclient.update_comment_with_author(id=self.last_doc_id, body=item.toJson())
         if isinstance(item, XueQiuCommentItem):
             self.last_doc_id = item['id']
         return item
@@ -75,20 +71,12 @@ class XueQiuAuthorPipeline(object):
 class ReferencePipeline(object):
 
     def __init__(self):
-        self.es_client = Elasticsearch(settings['ES_HOST'])
-        self.es_client.indices.create(settings['ES_REF_INDEX'], ignore=400)
+        self.esclient = ESAgent(settings = convertScrapySettingToDict(settings))
 
     def process_item(self, item, spider):
         if isinstance(item, ReferenceItem):
-            doc_body = {
-                'instrument':
-                    {
-                        'code': item['code'],
-                        'name': item['name']
-                    }
-            }
-            self.es_client.create(index=settings['ES_REF_INDEX'], doc_type="instrument", id=item['code'], body=doc_body, ignore=(409))
-        return item
+            self.esclient.create_reference(item.toJson())
+            return item
 
 
 class TimeSeriesPipeline(object):

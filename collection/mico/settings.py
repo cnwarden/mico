@@ -103,10 +103,21 @@ TIMESERIES_ITEM_PIPELINES = {
 
 
 # ElasticSearch
-ES_HOST=[{'host':'127.0.0.1','port':9200}]
-ES_INDEX='xueqiu_t'
-ES_REF_INDEX='reference_t'
-ES_TIMESERIES_INDEX='timeseries_t'
+# dev, prod, test
+MODE='dev'
+
+if MODE == 'dev':
+    ES_HOST=['127.0.0.1:9200']
+    ES_INDEX='mico_xueqiu_t'
+    ES_REF_INDEX='mico_reference_t'
+    ES_TIMESERIES_INDEX='mico_timeseries_t'
+    ES_CONFIG_INDEX='mico_config_t'
+else:
+    ES_HOST=['127.0.0.1:9200']
+    ES_INDEX='mico_xueqiu'
+    ES_REF_INDEX='mico_reference'
+    ES_TIMESERIES_INDEX='mico_timeseries'
+    ES_CONFIG_INDEX='mico_config'
 
 #from elasticsearch import Elasticsearch
 #es_client = Elasticsearch(ES_HOST)

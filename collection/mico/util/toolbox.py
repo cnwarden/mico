@@ -4,6 +4,17 @@ from datetime import datetime, tzinfo, timedelta
 import time
 import pytz
 
+def convertScrapySettingToDict(settings):
+    """
+    internal datastructure conversion
+    :param settings:
+    :return:
+    """
+    dict_settting = {}
+    for key in settings.attributes:
+        dict_settting[key] = settings.attributes[key].value
+    return dict_settting
+
 class TimeService(object):
     """
     Etc/GMT-8 is GMT+8
